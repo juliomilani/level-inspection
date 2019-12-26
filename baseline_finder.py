@@ -48,9 +48,9 @@ def find_cap_bb(cap_masks):
                     cv2.line(images[i], (0, y+h), (images[i].shape[1], y+h), (0, 255, 0), thickness=3)
                     el = cap_mask.copy()[y:y + h, x:x + w]
                     pil_im = Image.fromarray(images_rgb[0])
-
-    show_images(images)
+    show_images(images,images_name)
 
 find_cap_bb(get_cap_masks(images_rgb))
+
 
 plt.show()
