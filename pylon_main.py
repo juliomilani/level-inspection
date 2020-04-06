@@ -29,7 +29,6 @@ while camera.IsGrabbing():
         # Access the image data
         image = converter.Convert(grabResult)
         img = image.GetArray()
-
         y_level = find_level(img)
         cv2.line(img, (0, y_level), (img.shape[1], y_level), (255, 0, 0), thickness=3)
         cv2.namedWindow('title', cv2.WINDOW_NORMAL)
