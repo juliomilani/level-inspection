@@ -9,8 +9,8 @@ from skimage.measure import label, regionprops
 kernel_close = np.ones((5,5),np.uint8)
 kernel_gauss = (5,5)
 
-def find_level(img_rgb,img_name=None,out_folder=None,write_files=False):
-    image_gray = cv.cvtColor(img_rgb, cv.COLOR_RGB2GRAY)
+def find_level(image_gray,img_name=None,out_folder=None,write_files=False):
+    
     blurred = cv.GaussianBlur(image_gray,kernel_gauss,cv.BORDER_DEFAULT)
     canny = cv.Canny(blurred,10,30)
     if write_files:
@@ -54,5 +54,6 @@ if __name__ == '__main__':
         img_title = os.path.splitext(img_name)[0]
         img = cv.imread(img_path)
         img_rgb = cv.cvtColor(img,cv.COLOR_BGR2RGB)
-        find_level(img_rgb,img_title,path_out,True)
+        image_gray = cv.cvtColor(img_rgb, cv.COLOR_RGB2GRAY)
+        find_level(image_gray,img_title,path_out,True)
         print(img_name)

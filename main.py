@@ -18,7 +18,8 @@ if __name__ == '__main__':
 
         img = cv.imread(img_path)
         img_rgb = cv.cvtColor(img,cv.COLOR_BGR2RGB)
-        y_level = find_level(img_rgb)
+        image_gray = cv.cvtColor(img_rgb, cv.COLOR_RGB2GRAY)
+        y_level = find_level(image_gray)
         print(y_level)
         baseline = get_cap_bbox(img_rgb)[2]
 
