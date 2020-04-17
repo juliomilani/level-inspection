@@ -4,6 +4,7 @@ Esse projeto é referente a inspeção de nivel de líquidos em garrafas plásti
 Projeto de Diplomação: Julio Milani de Lucena 
 Engenharia Elétrica - UFRGS 2020
 
+![Plate Image](https://gitlab.com/alter-vision/level_inspection/out/sample.png "Input image")
 
 ## Getting Started
 ```
