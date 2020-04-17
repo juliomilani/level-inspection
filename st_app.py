@@ -1,3 +1,17 @@
+# Programa que encontra a quantidade de água presente em uma garrafa
+# Inspeção de nível
+# 
+# 
+# Projeto de Diplomacao
+# Julio Milani de Lucena
+# Orientador: Altamiro Susin
+# UFRGS 2020/1
+# 
+# 
+# TODO:
+# -Adicionar try..except
+# -Resolver problema das escritas
+# 
 import cv2 as cv
 import streamlit as st
 import os
@@ -10,8 +24,15 @@ import altair as alt
 
 class Params:
     def __init__(self):
-        self.baseline = 2
         self.img_width = 300
+        self.border_crop = 100      
+        if st.sidebar.checkbox('Cursor:'):
+            self.cursor_y = st.sidebar.slider('Cursor Y',min_value = 0,max_value=1500,value=5)
+            self.cursor_x = st.sidebar.slider('Cursor X',min_value = 0,max_value=1500,value=5)
+            self.draw_cursor = True
+        else:
+            self.draw_cursor = False
+
         if st.sidebar.checkbox('Filtros:'):
             self.kernel = st.sidebar.slider('Kernal Gauss',min_value = 0,max_value=100,value=5)
             if(self.kernel%2==0):
@@ -28,11 +49,15 @@ class Params:
             self.sigspa_bil = 50 
             self.t1can = 10
             self.t2can = 30
+
         if st.sidebar.checkbox('Ydif:'):
             self.ydiff = st.sidebar.slider('Ydif_inicial',min_value = 0,max_value=255,value=70)
         else:
             self.ydiff = 70
-        if st.sidebar.checkbox('Roi:'):
+
+        self.show_roi = st.sidebar.checkbox('Show_roi')
+
+        if st.sidebar.checkbox('Roi config'):
             self.roix = st.sidebar.slider('Roi_X_scale',min_value = 0.0,max_value=5.0,value=1.5)
             self.roiymin = st.sidebar.slider('Roi_y_min',min_value = 0.0,max_value=3.0,value=1.0)
             self.roiymax = st.sidebar.slider('Roi_y_max',min_value = 0.0,max_value=3.0,value=1.0)
@@ -40,6 +65,17 @@ class Params:
             self.roix = 1.5
             self.roiymin = 1.0
             self.roiymax = 1.0
+
+        self.draw_histogram = st.sidebar.checkbox('Histogram:')
+        if self.draw_histogram:
+            self.hist_thresh = st.sidebar.slider('Hist Thresh',min_value = 0.0,max_value=15.0,value=1.0)
+            self.hist_bins = st.sidebar.slider('Hist Bins',min_value = 0,max_value=1000,value=20)
+        else:
+            self.hist_thresh = 1.0
+            self.hist_bins = 20
+
+            
+
 params = Params()
 
 def main():
@@ -49,7 +85,7 @@ def main():
     uploaded_file = st.file_uploader("Choose a image file", type=["jpg",'png','jpeg','gif'])
     if uploaded_file is not None:
         file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
-        upl_img_0 = cv.imdecode(file_bytes, 1)
+        upl_img_0 = cv.imdecode(file_bytes,1)
         upl_img_0 = rescale(upl_img_0)
         upl_img_1 = foo(upl_img_0)
         st.image([upl_img_0,upl_img_1], width=params.img_width)
@@ -57,14 +93,23 @@ def main():
     # Images in folder part:
     imgs_path = get_all_imgs_paths()
     for i,img_path in enumerate(imgs_path):
+        st.write('--------------------------------')
         st.write("Img",i,os.path.abspath(imgs_path[i]),":")
         img_0 = cv.imread(img_path,0)
         img_0 = rescale(img_0)
-        img_1 = foo(img_0)
+        img_1,y_level = foo(img_0)
+        cv.line(img_0, (0, y_level), (img_0.shape[1], y_level), 0, thickness=2)
+        img_0,img_1 = draw_cursor(img_0,color=0),draw_cursor(img_1)
         st.image([img_0,img_1], width=params.img_width)
 
 
-    
+def draw_cursor(img_in,color=255):
+    img_out = img_in.copy()
+    if params.draw_cursor:
+        cv.line(img_out, (0, params.cursor_y), (img_out.shape[1], params.cursor_y), color, thickness=1)
+        cv.line(img_out, (params.cursor_x, 0), (params.cursor_x, img_out.shape[0]), color, thickness=1)
+    return img_out
+
 def get_all_imgs_paths():
     folder_0 = "images/"
     folders_1 = os.listdir(folder_0)
@@ -99,14 +144,14 @@ def foo(img_in):
             break
     
     im_height, im_width = img_out.shape
+    # Finds xmin, xmax: X's coordenates of the cap
     y_line_2 = ymin+params.ydiff
     if y_line_2 < im_height and y_line_2 > 0:
         line_2 = img_out[y_line_2]
     else:
         line_2 = img_out[0]
-    
-    mask1 = (np.arange(im_width)>100)*1
-    mask2 = (np.arange(im_width)<im_width-100)*1
+    mask1 = (np.arange(im_width)>params.border_crop)*1
+    mask2 = (np.arange(im_width)<im_width-params.border_crop)*1
     line_2 = line_2*mask1*mask2 # Crop edges
     if len(np.nonzero(line_2)[0]) != 0:
         xmin = np.nonzero(line_2)[0].min()
@@ -118,76 +163,45 @@ def foo(img_in):
         cap_width = 0 
         params.ydiff = 0  
 
-    # <DEV>
-
-    
     roi_xmin = int(xmin - (params.roix-1)*cap_width/2)
     roi_xmax = int(xmax + (params.roix-1)*cap_width/2)
     roi_ymin = int(ymin + (207*cap_width/218)*params.roiymin)
-    roi_ymax = int(ymin + (470*cap_width/218)*params.roiymax)
+    roi_ymax = int(ymin + (450*cap_width/218)*params.roiymax)
 
     img_roi = np.zeros(img_out.shape,dtype=int)
     img_roi[roi_ymin:roi_ymax,roi_xmin:roi_xmax] = img_out.copy()[roi_ymin:roi_ymax,roi_xmin:roi_xmax]
-    st.image(img_roi[roi_ymin:roi_ymax,roi_xmin:roi_xmax], width=params.img_width)
-
+    
+    if params.show_roi:
+        st.image(img_roi[roi_ymin:roi_ymax,roi_xmin:roi_xmax], width=params.img_width)
 
     points = np.transpose(np.nonzero(img_roi))
-    points[:,[0, 1]] = points[:,[1, 0]] #inversting x and y
-    # df = pd.DataFrame(points,columns=['x','y'])
-    # c = alt.Chart(df).mark_circle().encode(x=alt.X('x', scale=alt.Scale(domain=[0,1280])), y=alt.Y('y', scale=alt.Scale(domain=[1024,0])), tooltip=['x', 'y'])
-    # st.write(c)
-    y_tmp = points[:,1]
-    # hist = plt.hist(y_tmp,bins=20)
+    points[:,[0, 1]] = points[:,[1, 0]] #inversting x and y    
+    hist,edges = np.histogram(points[:,1],bins=params.hist_bins)
+    edges = edges[:-1]+np.diff(edges)/2 #edges.size--; Faz a media entre os extremos
 
-    hist,edges = np.histogram(y_tmp,bins=20)
-    edges = edges[:-1]+np.diff(edges)/2
-    # hist = np.hstack
+    id_max = np.argmax(hist) 
+    hist_max = hist[id_max] 
+    "Histmax", hist_max
 
-    'Info:',edges[:-1].shape
-    'Info:',hist.shape
-    plt.bar(edges,hist,width=5)
-    st.pyplot()
-    # st.bar_chart(info)
+    hist_thresh_abs = int(params.hist_thresh*200*(cap_width/184)*(20/params.hist_bins))
+    if hist_max > hist_thresh_abs:
+        y_level = int(edges[id_max])
+    else:
+        y_level = 0
+        st.write("Empty bottle")
 
-    # a=np.argmax(hist,axis=0)
-    # "argmax",a
-    # # hist[a]
-    # # "max",a
-    # st.pyplot()
-    # st.write(hist)
+    "Y level = ",y_level
 
-    # num_linhas = params.num_cols
-    # x_tests = np.linspace(xmin-100,xmax+100,num=num_linhas)
-    # x_tests = [int(x_test) for x_test in x_tests]
-    # points = np.transpose(np.nonzero(img_out))
-    # points[:,[0, 1]] = points[:,[1, 0]] #inversting x and y
+    porcentage = (y_level-ymin-224*cap_width/250)/(314*cap_width/250)
+    porcentage = 100*(1 - porcentage)
+    st.write(porcentage,"%")
+
+    if params.draw_histogram:
+        st.write("Histogram Threshold:",hist_thresh_abs)
+        plt.bar(edges,hist,width=5)
+        st.pyplot()
     
-    # mask = np.isin(points[:,0],x_tests).nonzero()
-    # points = points[mask]
-    # df = pd.DataFrame(points,columns=['x','y'])
-    # c = alt.Chart(df).mark_circle().encode(x=alt.X('x', scale=alt.Scale(domain=[0,1280])), y=alt.Y('y', scale=alt.Scale(domain=[1024,0])), tooltip=['x', 'y'])
-    # st.write(c)
-
-    # y_tmp = points[:,1]
-    # hist = plt.hist(y_tmp,bins=30)
-    # st.pyplot()
-    # st.write(hist)
-    
-    # h = int(cap_width*400/218)
-    # cv.line(img_out, (0, y_line_2+h), (im_width, y_line_2+h), 255, thickness=1)
-
-    # y_tmp = points[mask_tmp]
-    # y_tmp = y_tmp[:,1]
-    # y_tmp = points[:,1]
-  
-    # hist = plt.hist(y_tmp,bins=30)
-    # st.pyplot()
-    # st.write(hist)
-
-    # for x in x_tests:
-        # cv.line(img_out, (x, 0), (x, im_height), 255, thickness=1)
-    # <\DEV>
-
+    cv.line(img_out, (0, y_level), (im_width, y_level), 255, thickness=2)
     cv.rectangle(img_out, (roi_xmin,roi_ymin),(roi_xmax,roi_ymax), 255, 1)
     cv.line(img_out, (0, ymin), (im_width, ymin), 255, thickness=2)
     cv.line(img_out, (0, y_line_2), (im_width, y_line_2), 255, thickness=2)
@@ -195,10 +209,7 @@ def foo(img_in):
     cv.line(img_out, (xmax, 0), (xmax, y_line_2), 255, thickness=2)
     cv.putText(img_out,str(cap_width),(xmin,ymin-15),cv.FONT_HERSHEY_SIMPLEX, 2, 255,2)
 
-    
-
-
-    return img_out
+    return img_out,y_level
 
 
 
