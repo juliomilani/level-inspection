@@ -25,7 +25,8 @@ import altair as alt
 class Params:
     def __init__(self):
         self.img_width = 300
-        self.border_crop = 100      
+        self.border_crop = 100
+        self.y_tol = 20      
         if st.sidebar.checkbox('Cursor:'):
             self.cursor_y = st.sidebar.slider('Cursor Y',min_value = 0,max_value=1500,value=5)
             self.cursor_x = st.sidebar.slider('Cursor X',min_value = 0,max_value=1500,value=5)
@@ -74,11 +75,15 @@ class Params:
             self.hist_thresh = 1.0
             self.hist_bins = 20
 
-            
-
+# GLOBAL VARS
 params = Params()
+acc_vec = []
+succ_vec = []
+failure_vec = []
 
 def main():
+    global params
+    global acc_vec
     st.title('Fill level inspection playground:')
     "TCC do Julio"
     # Uploaded image part:
@@ -93,14 +98,66 @@ def main():
     # Images in folder part:
     imgs_path = get_all_imgs_paths()
     for i,img_path in enumerate(imgs_path):
-        st.write('--------------------------------')
         st.write("Img",i,os.path.abspath(imgs_path[i]),":")
+        base_name = os.path.basename(img_path)
         img_0 = cv.imread(img_path,0)
         img_0 = rescale(img_0)
         img_1,y_level = foo(img_0)
+        check_gt(base_name,y_level)
         cv.line(img_0, (0, y_level), (img_0.shape[1], y_level), 0, thickness=2)
         img_0,img_1 = draw_cursor(img_0,color=0),draw_cursor(img_1)
         st.image([img_0,img_1], width=params.img_width)
+        st.write('--------------------------------')
+    acc_vec = np.array(acc_vec)
+    st.write("Acc: ",np.mean(acc_vec)*100,"%")
+    st.write(np.sum(acc_vec),"/",np.size(acc_vec))
+    st.write(succ_vec)
+    st.write(failure_vec)
+
+
+
+def check_gt(base_name,y_level):
+    ground_truth = {
+        "ace015.bmp": 587,
+        "ace001.bmp": 673,
+        "ace012.bmp": 478,
+        "ace006.bmp": 690,
+        "ace007.bmp": 0,
+        "ace002.bmp": 508,
+        "ace013.bmp": 599,
+        "ace005.bmp": 496,
+        "ace016.bmp": 576,
+        "ace009.bmp": 659,
+        "ace008.bmp": 640,
+        "ace010.bmp": 580,
+        "ace004.bmp": 446,
+        "ace003.bmp": 548,
+        "ace014.bmp": 715,
+        "ace011.bmp": 521,
+        "webcl001.jpg": 395,
+        "webcl002.jpg": 394,
+        "cel001.jpeg": 1090,
+        "cel005.jpeg": 1001,
+        "cel004.jpeg": 1080,
+        "cel003.jpeg": 993,
+        "cel003.jpeg": 1030,
+    }
+    try:
+        yl_gt = ground_truth[base_name]
+        err = np.abs(yl_gt-y_level)
+        if err < params.y_tol:
+            st.write("Acerto! ","y_gt=",yl_gt)
+            acc_vec.append(1)
+            succ_vec.append(base_name)
+        else:
+            st.write("Erro! ","y_gt=",yl_gt)
+            acc_vec.append(0)
+            failure_vec.append(base_name)
+
+    except:
+        st.write("Ground truth not available")
+
+
 
 
 def draw_cursor(img_in,color=255):
@@ -210,11 +267,6 @@ def foo(img_in):
     cv.putText(img_out,str(cap_width),(xmin,ymin-15),cv.FONT_HERSHEY_SIMPLEX, 2, 255,2)
 
     return img_out,y_level
-
-
-
-
-
 
 
 
