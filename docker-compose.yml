@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  # Service name should be store_XX
+  # Port name : 8YXX where XX = Store_id Y=Device_id
+  tcc:
+    build: .
+    command: streamlit run st_app.py
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/code
