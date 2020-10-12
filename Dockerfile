@@ -14,4 +14,4 @@ EXPOSE 5000
 
 COPY . .
 
-CMD ["gunicorn", "run","st_app.py"]
+CMD ["streamlit", "run","st_app.py"]
