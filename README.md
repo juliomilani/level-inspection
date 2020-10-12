@@ -16,6 +16,8 @@ $ pip install requirements.txt
 $ streamlit run st_app.py
 
 $ sudo docker-compose up
+
+$ sudo heroku container:push web
 ```
 
 ## Authors
