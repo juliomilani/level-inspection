@@ -12,6 +12,6 @@ RUN pip install -r requirements.txt
 
 EXPOSE 8501
 
-COPY . .
+COPY ./src /code
 
-CMD ["streamlit", "run","st_app.py"]
+CMD ["sh","-c","streamlit run --server.port $PORT st_app.py"]

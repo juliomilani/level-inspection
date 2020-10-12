@@ -1,12 +1,13 @@
 version: "3"
 
 services:
-  # Service name should be store_XX
-  # Port name : 8YXX where XX = Store_id Y=Device_id
   tcc:
-    build: .
-    command: streamlit run st_app.py
+    image: streamlit-docker
+    build:
+        dockerfile: ./Dockerfile
+        context: .
+    # command: streamlit run st_app.py --server.port 80
+    environment:
+        - PORT=${PORT}
     ports:
-      - "8501:8501"
-    volumes:
-      - .:/code
+        - ${PORT}:${PORT}

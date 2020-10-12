@@ -173,10 +173,11 @@ def get_all_imgs_paths():
     imgs_path = []
     for folder_1 in folders_1:
         folder_2 = os.path.join(folder_0,folder_1)
-        imgs_filenames = os.listdir(folder_2)
-        for img_filename in imgs_filenames:
-            img_path = os.path.join(folder_2,img_filename)
-            imgs_path.append(img_path)
+        if os.path.isdir(folder_2):
+            imgs_filenames = os.listdir(folder_2)
+            for img_filename in imgs_filenames:
+                img_path = os.path.join(folder_2,img_filename)
+                imgs_path.append(img_path)
     st.write("Number of images: ", len(imgs_path))
     return imgs_path
 
