@@ -14,6 +14,8 @@ $ cd level_inspection
 #instala todos os pacotes necessários
 $ pip install requirements.txt
 $ streamlit run st_app.py
+
+$ sudo docker-compose up
 ```
 
 ## Authors
