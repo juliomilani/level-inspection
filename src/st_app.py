@@ -31,10 +31,10 @@ class Params:
         self.y_tol = 20      
         self.cap_width = 30 #mm
         
-        self.set = st.sidebar.selectbox('Choose image set',('Train set', 'Test set'))
+        self.set = st.sidebar.selectbox('Choose image set',('15ml_images','Train set', 'Test set'))
         self.reference = st.sidebar.slider('Reference [mm]',min_value = 40.0,max_value=60.0,value=48.5)
-        self.tolerance_plus = st.sidebar.slider('Tolerance + [mm]',min_value = 0.0, max_value=3.0,value=1.0)    
-        self.tolerance_minus = st.sidebar.slider('Tolerance - [mm]',min_value = 0.0, max_value=3.0,value=1.0)
+        self.tolerance_plus = st.sidebar.slider('Tolerance + [mm]',min_value = 0.0, max_value=5.0,value=3.6)    
+        self.tolerance_minus = st.sidebar.slider('Tolerance - [mm]',min_value = 0.0, max_value=5.0,value=2.8)
         self.draw_cursor = st.sidebar.checkbox('Cursor:')
         if self.draw_cursor:
             self.cursor_y = st.sidebar.slider('Cursor Y',min_value = 0,max_value=1500,value=5)
@@ -120,8 +120,8 @@ def main():
     )
     st.dataframe(df)
     accuracy = (confusion_matrix[0,0]+confusion_matrix[1,1]+confusion_matrix[2,2])/np.sum(confusion_matrix)
-    precision = (confusion_matrix[1,1])/np.sum(confusion_matrix[:,1])
-    recall = (confusion_matrix[1,1])/np.sum(confusion_matrix[1,:])
+    precision = (confusion_matrix[0,0]+confusion_matrix[2,2])/(np.sum(confusion_matrix[:,0])+np.sum(confusion_matrix[:,2]))
+    recall = (confusion_matrix[0,0]+confusion_matrix[2,2])/(np.sum(confusion_matrix[0,:])+np.sum(confusion_matrix[2,:]))
     f1 = 2*(recall * precision) / (recall + precision)
     st.write("Accuracy:",accuracy*100,"%")
     st.write("Precision:",precision*100,"%")
@@ -164,8 +164,10 @@ def get_all_imgs_paths():
     global params
     if params.set=="Train set":
         folder_0 = "train_images/"
+    elif params.set=="15ml_images":
+        folder_0 = "15ml_images/"
     else:
-        folder_0 = "test_images/"
+        folder_0= "test_images/"
     folders_1 = os.listdir(folder_0)
     imgs_path = []
     for folder_1 in folders_1:
