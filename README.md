@@ -17,12 +17,14 @@ $ streamlit run st_app.py
 
 Ou rodar por docker:
 $ sudo docker-compose up
+```
 
+## Deploying changes:
+```
 $ sudo heroku container:push web
 $ sudo heroku container:release web
 $ heroku open
 ```
-
 ## Authors
 
 * **Julio Milani de Lucena** - UFRGS - julio.lucena@ufrgs.br
