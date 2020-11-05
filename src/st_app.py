@@ -168,18 +168,21 @@ def get_all_imgs_paths():
         folder_0 = "15ml_images/"
     else:
         folder_0= "test_images/"
-    try:
-        folders_1 = os.listdir(folder_0)
-        imgs_path = []
-        for folder_1 in folders_1:
-            folder_2 = os.path.join(folder_0,folder_1)
+    folders_1 = os.listdir(folder_0)
+    imgs_path = []
+    for folder_1 in folders_1:
+        folder_2 = os.path.join(folder_0,folder_1)
+        try:
             imgs_filenames = os.listdir(folder_2)
             for img_filename in imgs_filenames:
                 img_path = os.path.join(folder_2,img_filename)
                 imgs_path.append(img_path)
-        st.write("Number of images: ", len(imgs_path))
-    except Exception as e:
-        st.write("Not a directory")
+            st.write("Number of images: ", len(imgs_path))
+        except Exception as e:
+            st.write("Not a directory")
+
+        
+
     return imgs_path
 
 def rescale(img_in):
