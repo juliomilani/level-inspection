@@ -179,7 +179,7 @@ def get_all_imgs_paths():
                 imgs_path.append(img_path)
         st.write("Number of images: ", len(imgs_path))
     except Exception as e:
-        st.write(e)
+        st.write("Not a directory")
     return imgs_path
 
 def rescale(img_in):
