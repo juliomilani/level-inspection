@@ -271,6 +271,10 @@ def foo(img_in):
     if params.draw_histogram:
         st.write("Histogram Threshold:",hist_thresh_abs)
         plt.bar(edges,hist,width=5)
+        plt.title("Distribuição vertical de pixels não nulos")
+        plt.xlabel("Coordenada Y da imagem [px]")
+        plt.ylabel("Número de pixels não nulos")
+        plt.grid()
         st.pyplot()
     
     cv.line(img_out, (0, y_level), (im_width, y_level), 255, thickness=2)
