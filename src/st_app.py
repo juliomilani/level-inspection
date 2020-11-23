@@ -123,9 +123,9 @@ def main():
     precision = (confusion_matrix[0,0]+confusion_matrix[2,2])/(np.sum(confusion_matrix[:,0])+np.sum(confusion_matrix[:,2]))
     recall = (confusion_matrix[0,0]+confusion_matrix[2,2])/(np.sum(confusion_matrix[0,:])+np.sum(confusion_matrix[2,:]))
     f1 = 2*(recall * precision) / (recall + precision)
-    st.write("Accuracy:",accuracy*100,"%")
-    st.write("Precision:",precision*100,"%")
-    st.write("Recall:",recall*100,"%")
+    st.write("Accuracy:", "{:.2f}%".format(accuracy*100) )
+    st.write("Precision:","{:.2f}%".format(precision*100))
+    st.write("Recall:","{:.2f}%".format(recall*100))
     st.write("F1:",f1)
     # true_negatives = confusion_matrix[]
     # Accuracy = TP+TN/TP+FP+FN+TN
